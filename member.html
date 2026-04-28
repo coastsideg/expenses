@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Member — Australian Politicians</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container">
+    <div>
+      <h1>Australian Politicians</h1>
+      <div class="tagline">Expenses, interests and salaries — public record, transcribed</div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Overview</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="members.html" class="active">Members</a>
+      <a href="summary.html">Summary</a>
+      <a href="https://github.com/icacpls/icacpls.github.io" target="_blank">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+  <div id="member-content"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="small">Source: <a href="https://www.ipea.gov.au/reporting" target="_blank">IPEA</a>. Errors may have been introduced in transcription. Verify against original reports.</p>
+  </div>
+</footer>
+
+<script src="scripts.js"></script>
+<script>
+(async function () {
+  const id = qparam("id");
+  const root = document.getElementById("member-content");
+  if (!id) { root.innerHTML = '<p>No member specified. <a href="members.html">Browse all members</a>.</p>'; return; }
+
+  const [members, expenses] = await Promise.all([
+    loadJSON("data/members.json"),
+    loadJSON("data/expenses.json"),
+  ]);
+  const m = members.find(x => x.id === id);
+  if (!m) { root.innerHTML = `<p>Member <code>${id}</code> not found. <a href="members.html">Browse all members</a>.</p>`; return; }
+
+  const mexpenses = expenses.filter(e => e.member_id === id);
+  document.title = `${m.name} — Australian Politicians`;
+
+  // Header
+  let html = `
+    <div class="member-head">
+      <h1>${m.name}</h1>
+      <div class="meta">
+        ${chip(m.party)} <strong>${m.party_full || m.party}</strong>
+        — ${m.is_senator ? `Senator for ${m.state}` : `Member for ${m.electorate || "—"} (${m.state})`}
+        ${m.homebase ? `— Home base: ${m.homebase}` : ""}
+      </div>
+      <p class="small muted" style="margin-top:8px">
+        <a href="members.html">← All members</a>
+      </p>
+    </div>
+
+    <div class="stats">
+      <div class="stat"><div class="label">Total claimed</div><div class="value">${fmt.moneyShort(m.total)}</div><div class="sub">${fmt.num(m.expense_count)} line items</div></div>
+      <div class="stat"><div class="label">Highest single category</div><div class="value">${fmt.moneyShort(Math.max(...Object.values(m.by_category)))}</div><div class="sub">${Object.keys(m.by_category)[0] || "—"}</div></div>
+      <div class="stat"><div class="label">Quarters with claims</div><div class="value">${Object.keys(m.by_quarter).length}</div></div>
+      <div class="stat"><div class="label">Average per item</div><div class="value">${fmt.moneyShort(m.expense_count ? m.total / m.expense_count : 0)}</div></div>
+    </div>
+  `;
+
+  html += `
+    <div class="cols-2">
+      <div>
+        <h3>Spending by category</h3>
+        <div id="bars-cat" class="bars"></div>
+      </div>
+      <div>
+        <h3>Spending by quarter</h3>
+        <div id="bars-quarter" class="bars"></div>
+      </div>
+    </div>
+    <h3>All claims</h3>
+    <div id="claims"></div>
+  `;
+  root.innerHTML = html;
+
+  const catItems = Object.entries(m.by_category).map(([label, value]) => ({ label, value }));
+  renderBars(document.getElementById("bars-cat"), catItems);
+
+  const qItems = Object.entries(m.by_quarter).map(([label, value]) => ({ label, value }));
+  renderBars(document.getElementById("bars-quarter"), qItems);
+
+  const cols = [
+    { key: "category", label: "Category" },
+    { key: "subcategory", label: "Subcategory" },
+    { key: "description", label: "Description" },
+    { key: "from_date", label: "Date", class: "hide-sm" },
+    { key: "amount", label: "Amount", type: "num", render: (r) => fmt.money(r.amount) },
+  ];
+  renderTable(document.getElementById("claims"), cols, mexpenses, { sortKey: "amount", sortDir: "desc", pageSize: 30 });
+})();
+</script>
+</body>
+</html>

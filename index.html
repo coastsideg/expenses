@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Australian Politicians — Expenses, Interests and Salaries</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container">
+    <div>
+      <h1>Australian Politicians</h1>
+      <div class="tagline">Expenses, interests and salaries — public record, transcribed</div>
+    </div>
+    <nav class="nav">
+      <a href="index.html" class="active">Overview</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="members.html">Members</a>
+      <a href="summary.html">Summary</a>
+      <a href="https://github.com/icacpls/icacpls.github.io" target="_blank">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="notice" id="data-notice"></div>
+
+  <h2 class="section">At a glance</h2>
+  <div class="stats" id="stats"></div>
+
+  <div class="cols-2">
+    <section>
+      <h3>Spending by category</h3>
+      <div id="bars-category" class="bars"></div>
+    </section>
+
+    <section>
+      <h3>Spending by party</h3>
+      <div id="bars-party" class="bars"></div>
+    </section>
+  </div>
+
+  <h2 class="section">Top spenders this period</h2>
+  <p class="muted small">Click any name to see their full expense breakdown. Sortable; data current to the most recent loaded reporting period.</p>
+  <div id="top-spenders"></div>
+
+  <h2 class="section">About this site</h2>
+  <p>
+    This site transcribes published expense reports for Australian Federal parliamentarians (Members of the House of Representatives and Senators) into searchable form. Source data is from the
+    <a href="https://www.ipea.gov.au/reporting" target="_blank">Independent Parliamentary Expenses Authority</a>
+    via <a href="https://data.gov.au/data/organization/ipea" target="_blank">data.gov.au</a>.
+  </p>
+  <p>
+    Errors may have been introduced in transcription. Verify figures against the original reports where it matters. To rebuild with up-to-date or historical data, fork the repository and run <code>python scripts/fetch_data.py</code>.
+  </p>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p>
+      Built on Independent Parliamentary Expenses Authority data published under
+      <a href="http://creativecommons.org/licenses/by/3.0/au/" target="_blank">CC BY 3.0 AU</a>.
+      Salary estimates derived from <a href="https://www.remtribunal.gov.au/offices/parliamentary-offices" target="_blank">Remuneration Tribunal determinations</a>.
+      Interest data sourced from the <a href="https://www.aph.gov.au/Senators_and_Members/Members/Register" target="_blank">Register of Members' Interests</a> and Register of Senators' Interests.
+    </p>
+    <p class="small">This site is not affiliated with the Commonwealth of Australia, IPEA, or any parliamentarian.</p>
+  </div>
+</footer>
+
+<script src="scripts.js"></script>
+<script>
+(async function () {
+  const [summary, members, quarters] = await Promise.all([
+    loadJSON("data/summary.json"),
+    loadJSON("data/members.json"),
+    loadJSON("data/quarters.json"),
+  ]);
+
+  // Notice
+  const notice = document.getElementById("data-notice");
+  const qLabels = quarters.map(q => q.label).join(", ");
+  notice.innerHTML = `<strong>Data loaded:</strong> ${qLabels || "no quarters loaded"}.
+    To add more quarters, run <code>python scripts/fetch_data.py</code> from the project root.`;
+
+  // Stats
+  document.getElementById("stats").innerHTML = `
+    <div class="stat"><div class="label">Total Spending</div><div class="value">${fmt.moneyShort(summary.total_amount)}</div><div class="sub">across ${fmt.num(summary.total_expenses)} line items</div></div>
+    <div class="stat"><div class="label">Parliamentarians</div><div class="value">${fmt.num(summary.total_members)}</div><div class="sub">with claims in period</div></div>
+    <div class="stat"><div class="label">Top Spender</div><div class="value">${fmt.moneyShort(members[0]?.total || 0)}</div><div class="sub">${members[0]?.surname || "—"}</div></div>
+    <div class="stat"><div class="label">Reporting Periods</div><div class="value">${quarters.length}</div><div class="sub">${qLabels || "—"}</div></div>
+  `;
+
+  // Bars - category
+  const categoryItems = Object.entries(summary.by_category)
+    .map(([label, v]) => ({ label, value: v.total }))
+    .slice(0, 8);
+  renderBars(document.getElementById("bars-category"), categoryItems);
+
+  // Bars - party
+  const partyOrder = ["ALP","LIB","NAT","GRN","ON","JLN","IND","OTH"];
+  const partyColors = {
+    ALP: "var(--party-alp)", LIB: "var(--party-lib)", NAT: "var(--party-nat)",
+    GRN: "var(--party-grn)", ON: "var(--party-on)", IND: "var(--party-ind)",
+    JLN: "var(--party-jln)", OTH: "var(--party-oth)",
+  };
+  const partyItems = partyOrder
+    .filter(p => summary.by_party[p])
+    .map(p => ({ label: p, value: summary.by_party[p].total, color: partyColors[p] }));
+  renderBars(document.getElementById("bars-party"), partyItems);
+
+  // Top spenders table
+  const cols = [
+    { key: "name", label: "Parliamentarian", render: (r) => `<a href="member.html?id=${encodeURIComponent(r.id)}">${r.name}</a>` },
+    { key: "party", label: "Party", render: (r) => chip(r.party) },
+    { key: "state", label: "State", class: "hide-sm" },
+    { key: "electorate", label: "Electorate / Senator", render: (r) => r.is_senator ? `<em class="muted">Senator (${r.state})</em>` : r.electorate, class: "hide-sm" },
+    { key: "expense_count", label: "Items", type: "num", class: "hide-sm" },
+    { key: "total", label: "Total", type: "num", render: (r) => fmt.money(r.total) },
+  ];
+  renderTable(document.getElementById("top-spenders"), cols, members.slice(0, 100), { sortKey: "total", sortDir: "desc", pageSize: 25 });
+})();
+</script>
+
+</body>
+</html>

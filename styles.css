@@ -1,0 +1,306 @@
+/* =========================================================
+   ICACPLS — Australian Politicians Expense Tracker
+   Civic / journalistic aesthetic. Restrained, data-first.
+   ========================================================= */
+
+:root {
+  --ink:        #0a0a0a;
+  --ink-soft:   #2a2a2a;
+  --ink-muted:  #6b6b6b;
+  --paper:      #f8f5ee;     /* warm off-white, parchment */
+  --paper-2:    #efeae0;
+  --line:       #1a1a1a;
+  --line-soft:  #c9c4b8;
+  --accent:     #8b1a1a;     /* parliamentary red */
+  --accent-2:   #1c3d6e;     /* royal blue */
+  --good:       #2e6e3e;
+  --warn:       #b06a1a;
+
+  --party-alp:  #b91c1c;
+  --party-lib:  #1d4ed8;
+  --party-grn:  #16a34a;
+  --party-nat:  #15803d;
+  --party-on:   #ea580c;
+  --party-ind:  #4b5563;
+  --party-jln:  #7c3aed;
+  --party-oth:  #92400e;
+
+  --serif: "Spectral", "Source Serif Pro", "Times New Roman", serif;
+  --sans:  "Inter", -apple-system, "Segoe UI", system-ui, sans-serif;
+  --mono:  "JetBrains Mono", "Menlo", monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid currentColor; }
+a:hover { color: var(--ink); }
+
+/* Masthead --------------------------------------------------- */
+.masthead {
+  border-bottom: 3px double var(--line);
+  padding: 14px 0 10px;
+  background: var(--paper);
+}
+.masthead .container { display: flex; align-items: baseline; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.masthead h1 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+.masthead .tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  color: var(--ink-muted);
+  font-size: 14px;
+}
+.masthead .nav {
+  display: flex;
+  gap: 18px;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.masthead .nav a {
+  border: 0;
+  color: var(--ink);
+  padding: 4px 0;
+}
+.masthead .nav a.active,
+.masthead .nav a:hover {
+  border-bottom: 2px solid var(--accent);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* Section headings ------------------------------------------- */
+h2.section {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 600;
+  margin: 32px 0 12px;
+  border-bottom: 1px solid var(--line);
+  padding-bottom: 6px;
+}
+h3 {
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  margin: 20px 0 8px;
+}
+
+/* Stat cards ------------------------------------------------- */
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0;
+  border: 1px solid var(--line-soft);
+  margin: 16px 0 24px;
+  background: white;
+}
+.stat {
+  padding: 16px 18px;
+  border-right: 1px solid var(--line-soft);
+}
+.stat:last-child { border-right: 0; }
+.stat .label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+.stat .value {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 700;
+  margin-top: 4px;
+}
+.stat .sub { font-size: 12px; color: var(--ink-muted); }
+
+/* Tables ----------------------------------------------------- */
+table.data {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13.5px;
+  background: white;
+  border: 1px solid var(--line-soft);
+}
+table.data th {
+  text-align: left;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-size: 11px;
+  color: var(--ink-muted);
+  padding: 8px 10px;
+  background: var(--paper-2);
+  border-bottom: 1px solid var(--line);
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+table.data th.sorted-asc::after  { content: " ↑"; color: var(--accent); }
+table.data th.sorted-desc::after { content: " ↓"; color: var(--accent); }
+table.data td {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--line-soft);
+  vertical-align: top;
+}
+table.data tr:hover td { background: var(--paper-2); }
+table.data .num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); font-size: 12.5px; }
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  font-size: 13px;
+  color: var(--ink-muted);
+}
+.pagination button {
+  background: white;
+  border: 1px solid var(--line-soft);
+  padding: 4px 10px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+}
+.pagination button:hover:not(:disabled) { background: var(--paper-2); }
+.pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Filters --------------------------------------------------- */
+.filters {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+  padding: 12px 14px;
+  background: white;
+  border: 1px solid var(--line-soft);
+}
+.filters .field { display: flex; flex-direction: column; gap: 3px; }
+.filters label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--ink-muted);
+}
+.filters input, .filters select {
+  font-family: inherit;
+  font-size: 13px;
+  padding: 5px 8px;
+  border: 1px solid var(--line-soft);
+  background: white;
+  min-width: 160px;
+}
+.filters input[type=search] { min-width: 240px; }
+
+/* Party chips ------------------------------------------------ */
+.chip {
+  display: inline-block;
+  padding: 1px 7px;
+  border-radius: 2px;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: white;
+  text-transform: uppercase;
+  vertical-align: 1px;
+}
+.chip.alp { background: var(--party-alp); }
+.chip.lib { background: var(--party-lib); }
+.chip.grn { background: var(--party-grn); }
+.chip.nat { background: var(--party-nat); }
+.chip.on  { background: var(--party-on);  }
+.chip.ind { background: var(--party-ind); }
+.chip.jln { background: var(--party-jln); }
+.chip.oth { background: var(--party-oth); }
+
+/* Bar chart (CSS-only horizontal bars) ----------------------- */
+.bars { display: flex; flex-direction: column; gap: 2px; }
+.bar-row {
+  display: grid;
+  grid-template-columns: 200px 1fr 110px;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 0;
+  font-size: 13px;
+}
+.bar-row .label { color: var(--ink); }
+.bar-row .track {
+  height: 14px;
+  background: var(--paper-2);
+  border-left: 1px solid var(--line-soft);
+  position: relative;
+}
+.bar-row .fill { height: 100%; background: var(--accent); }
+.bar-row .num  { text-align: right; font-family: var(--mono); font-size: 12px; }
+
+/* Member detail -------------------------------------------- */
+.member-head {
+  border-bottom: 1px solid var(--line);
+  padding: 14px 0 16px;
+  margin-bottom: 16px;
+}
+.member-head h1 { font-family: var(--serif); font-size: 32px; margin: 0 0 6px; }
+.member-head .meta { font-size: 14px; color: var(--ink-muted); }
+
+/* Two-column layout */
+.cols-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  margin: 12px 0;
+}
+@media (max-width: 800px) {
+  .cols-2 { grid-template-columns: 1fr; }
+}
+
+/* Footer ---------------------------------------------------- */
+footer.site-footer {
+  margin: 60px 0 30px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line-soft);
+  font-size: 12.5px;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+/* Notice banner */
+.notice {
+  background: #fff8e1;
+  border: 1px solid #d6c97e;
+  padding: 10px 14px;
+  margin: 16px 0;
+  font-size: 13px;
+}
+
+/* Utility */
+.muted { color: var(--ink-muted); }
+.right { text-align: right; }
+.small { font-size: 12px; }
+.mono  { font-family: var(--mono); }
+
+/* hide on small */
+@media (max-width: 700px) {
+  .hide-sm { display: none; }
+  .stat .value { font-size: 22px; }
+  table.data { font-size: 12.5px; }
+}

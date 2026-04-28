@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Summary — Australian Politicians</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container">
+    <div>
+      <h1>Australian Politicians</h1>
+      <div class="tagline">Expenses, interests and salaries — public record, transcribed</div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Overview</a>
+      <a href="expenses.html">Expenses</a>
+      <a href="members.html">Members</a>
+      <a href="summary.html" class="active">Summary</a>
+      <a href="https://github.com/icacpls/icacpls.github.io" target="_blank">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <h2 class="section">Aggregates</h2>
+
+  <div class="cols-2">
+    <section>
+      <h3>Total spending by party</h3>
+      <div id="bars-party" class="bars"></div>
+      <p class="small muted" style="margin-top:8px">Party totals divided by member count give per-member averages, shown below.</p>
+      <div id="party-table" style="margin-top:10px"></div>
+    </section>
+
+    <section>
+      <h3>Total spending by state</h3>
+      <div id="bars-state" class="bars"></div>
+    </section>
+  </div>
+
+  <h2 class="section">Spending by category</h2>
+  <div id="cat-table"></div>
+
+  <h2 class="section">Methodology</h2>
+  <p class="small">
+    Aggregates are computed from the IPEA detail extracts loaded in <code>data/expenses.json</code>.
+    Negative amounts (adjustments and repayments) are included in totals as published by IPEA.
+    "Members" counts unique parliamentarians who appeared in any loaded reporting period.
+    Salary estimates are derived from <a href="https://www.remtribunal.gov.au/offices/parliamentary-offices" target="_blank">Remuneration Tribunal determinations</a> and are not yet integrated into this build.
+  </p>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="small">Source: <a href="https://www.ipea.gov.au/reporting" target="_blank">IPEA</a>.</p>
+  </div>
+</footer>
+
+<script src="scripts.js"></script>
+<script>
+(async function () {
+  const summary = await loadJSON("data/summary.json");
+
+  // Party bars
+  const partyOrder = ["ALP","LIB","NAT","GRN","ON","JLN","IND","OTH"];
+  const partyColors = {
+    ALP: "var(--party-alp)", LIB: "var(--party-lib)", NAT: "var(--party-nat)",
+    GRN: "var(--party-grn)", ON: "var(--party-on)", IND: "var(--party-ind)",
+    JLN: "var(--party-jln)", OTH: "var(--party-oth)",
+  };
+  const partyItems = partyOrder.filter(p => summary.by_party[p]).map(p => ({
+    label: p, value: summary.by_party[p].total, color: partyColors[p],
+  }));
+  renderBars(document.getElementById("bars-party"), partyItems);
+
+  // Party table with averages
+  const ptable = `
+    <table class="data">
+      <thead><tr>
+        <th>Party</th><th class="num">Members</th><th class="num">Total</th><th class="num">Avg / member</th>
+      </tr></thead>
+      <tbody>
+        ${partyOrder.filter(p => summary.by_party[p]).map(p => {
+          const v = summary.by_party[p];
+          return `<tr><td>${chip(p)}</td><td class="num">${fmt.num(v.count)}</td><td class="num">${fmt.money(v.total)}</td><td class="num">${fmt.money(v.count ? v.total / v.count : 0)}</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+  document.getElementById("party-table").innerHTML = ptable;
+
+  // State bars
+  const stateItems = Object.entries(summary.by_state)
+    .map(([label, v]) => ({ label: label || "—", value: v.total }))
+    .sort((a,b) => b.value - a.value);
+  renderBars(document.getElementById("bars-state"), stateItems);
+
+  // Category breakdown table
+  const ctable = `
+    <table class="data">
+      <thead><tr>
+        <th>Category</th><th class="num">Members</th><th class="num">Total</th><th class="num">Share</th>
+      </tr></thead>
+      <tbody>
+        ${Object.entries(summary.by_category).map(([cat, v]) => {
+          const pct = (v.total / summary.total_amount * 100).toFixed(1);
+          return `<tr><td>${cat}</td><td class="num">${fmt.num(v.count)}</td><td class="num">${fmt.money(v.total)}</td><td class="num">${pct}%</td></tr>`;
+        }).join("")}
+      </tbody>
+    </table>`;
+  document.getElementById("cat-table").innerHTML = ctable;
+})();
+</script>
+</body>
+</html>

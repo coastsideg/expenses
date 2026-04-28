@@ -1,0 +1,90 @@
+{
+  "total_amount": 138182.43,
+  "total_expenses": 110,
+  "total_members": 103,
+  "by_party": {
+    "ALP": {
+      "total": 71717.19999999998,
+      "count": 48
+    },
+    "NAT": {
+      "total": 15490.220000000001,
+      "count": 9
+    },
+    "GRN": {
+      "total": 10519.939999999999,
+      "count": 7
+    },
+    "IND": {
+      "total": 19755.750000000004,
+      "count": 17
+    },
+    "LIB": {
+      "total": 20699.32,
+      "count": 22
+    }
+  },
+  "by_state": {
+    "VIC": {
+      "total": 57324.80999999998,
+      "count": 38
+    },
+    "NSW": {
+      "total": 18496.950000000004,
+      "count": 16
+    },
+    "QLD": {
+      "total": 40148.79000000001,
+      "count": 22
+    },
+    "ACT": {
+      "total": 6747.13,
+      "count": 4
+    },
+    "TAS": {
+      "total": 6059.85,
+      "count": 7
+    },
+    "NT": {
+      "total": 2757.02,
+      "count": 3
+    },
+    "WA": {
+      "total": 3858.34,
+      "count": 8
+    },
+    "SA": {
+      "total": 2789.54,
+      "count": 5
+    }
+  },
+  "by_category": {
+    "Office Administration": {
+      "total": 120741.94999999995,
+      "count": 86
+    },
+    "Travel Allowance": {
+      "total": 9441.0,
+      "count": 12
+    },
+    "Unscheduled Commercial Transport": {
+      "total": 7050.0,
+      "count": 1
+    },
+    "Telecommunications": {
+      "total": 427.71000000000004,
+      "count": 4
+    },
+    "Scheduled Commercial Transport": {
+      "total": 277.22,
+      "count": 1
+    },
+    "Other Car Costs": {
+      "total": 244.55,
+      "count": 2
+    }
+  },
+  "quarters_loaded": [
+    "2025Q03"
+  ]
+}

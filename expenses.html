@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>All Expenses — Australian Politicians</title>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Spectral:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="container">
+    <div>
+      <h1>Australian Politicians</h1>
+      <div class="tagline">Expenses, interests and salaries — public record, transcribed</div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Overview</a>
+      <a href="expenses.html" class="active">Expenses</a>
+      <a href="members.html">Members</a>
+      <a href="summary.html">Summary</a>
+      <a href="https://github.com/icacpls/icacpls.github.io" target="_blank">Source</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <h2 class="section">Every line item</h2>
+  <p class="muted small">Filter and sort across every expense claim in the loaded periods. Click column headers to sort.</p>
+
+  <div class="filters">
+    <div class="field">
+      <label for="f-search">Search</label>
+      <input id="f-search" type="search" placeholder="Member, description, location...">
+    </div>
+    <div class="field">
+      <label for="f-party">Party</label>
+      <select id="f-party"><option value="">All parties</option></select>
+    </div>
+    <div class="field">
+      <label for="f-state">State</label>
+      <select id="f-state"><option value="">All states</option></select>
+    </div>
+    <div class="field">
+      <label for="f-category">Category</label>
+      <select id="f-category"><option value="">All categories</option></select>
+    </div>
+    <div class="field">
+      <label for="f-min">Min $</label>
+      <input id="f-min" type="number" min="0" step="100" placeholder="0" style="min-width:90px">
+    </div>
+  </div>
+
+  <div id="counter" class="muted small" style="margin-bottom:6px"></div>
+  <div id="table"></div>
+
+</main>
+
+<footer class="site-footer">
+  <div class="container">
+    <p class="small">Source: <a href="https://www.ipea.gov.au/reporting" target="_blank">IPEA</a>. Negative amounts indicate adjustments or repayments. Verify against original reports where it matters.</p>
+  </div>
+</footer>
+
+<script src="scripts.js"></script>
+<script>
+(async function () {
+  const all = await loadJSON("data/expenses.json");
+
+  // Populate filter options
+  const parties = [...new Set(all.map(e => e.party))].filter(Boolean).sort();
+  parties.forEach(p => {
+    const o = document.createElement("option"); o.value = p; o.textContent = p;
+    document.getElementById("f-party").appendChild(o);
+  });
+  const states = [...new Set(all.map(e => e.state))].filter(Boolean).sort();
+  states.forEach(s => {
+    const o = document.createElement("option"); o.value = s; o.textContent = s;
+    document.getElementById("f-state").appendChild(o);
+  });
+  const cats = [...new Set(all.map(e => e.category))].filter(Boolean).sort();
+  cats.forEach(c => {
+    const o = document.createElement("option"); o.value = c; o.textContent = c;
+    document.getElementById("f-category").appendChild(o);
+  });
+
+  const cols = [
+    { key: "member", label: "Parliamentarian", render: (r) => `<a href="member.html?id=${encodeURIComponent(r.member_id)}">${r.member}</a>` },
+    { key: "party",  label: "Party",  render: (r) => chip(r.party) },
+    { key: "state",  label: "State",  class: "hide-sm" },
+    { key: "category", label: "Category" },
+    { key: "subcategory", label: "Subcategory", class: "hide-sm" },
+    { key: "description", label: "Description / Trip" },
+    { key: "amount", label: "Amount", type: "num", render: (r) => fmt.money(r.amount) },
+  ];
+  const counter = document.getElementById("counter");
+
+  const table = renderTable(document.getElementById("table"), cols, all, {
+    sortKey: "amount", sortDir: "desc", pageSize: 50,
+  });
+
+  function applyFilters() {
+    const q = document.getElementById("f-search").value.trim().toLowerCase();
+    const party = document.getElementById("f-party").value;
+    const state = document.getElementById("f-state").value;
+    const cat = document.getElementById("f-category").value;
+    const min = parseFloat(document.getElementById("f-min").value) || 0;
+
+    const filtered = all.filter(e => {
+      if (party && e.party !== party) return false;
+      if (state && e.state !== state) return false;
+      if (cat && e.category !== cat) return false;
+      if (min && Math.abs(e.amount) < min) return false;
+      if (q) {
+        const hay = `${e.member} ${e.description} ${e.from} ${e.to} ${e.electorate}`.toLowerCase();
+        if (!hay.includes(q)) return false;
+      }
+      return true;
+    });
+    table.setRows(filtered);
+    const sum = filtered.reduce((s,e) => s + (e.amount || 0), 0);
+    counter.innerHTML = `${fmt.num(filtered.length)} of ${fmt.num(all.length)} records — total ${fmt.money(sum)}`;
+  }
+
+  ["f-search","f-party","f-state","f-category","f-min"].forEach(id => {
+    document.getElementById(id).addEventListener("input", applyFilters);
+  });
+  applyFilters();
+})();
+</script>
+
+</body>
+</html>
